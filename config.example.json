@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "server": {
+    "host": "127.0.0.1",
+    "port": 7070
+  },
+  "paths": {
+    "install_path": "",
+    "debian_base_path": "/",
+    "git_workspace_root": "",
+    "project_hook_file": "project_hooks.py",
+    "state_dir": "~/.layaider"
+  },
+  "repos": {
+    "active": "",
+    "extra": [],
+    "scan_depth": 2
+  },
+  "session": {
+    "name": "la-aider",
+    "shell": "bash -lic",
+    "engine": "aider"
+  },
+  "scan": {
+    "stub_max_lines": 2,
+    "stub_exts": [
+      ".js",
+      ".mjs"
+    ]
+  }
+}

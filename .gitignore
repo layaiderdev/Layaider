@@ -1,1 +1,37 @@
+# Layaider — local runtime, generated, and device-specific files (never commit).
 
+# Live, device-specific configuration written by first-run init.
+# The committed template is config.example.json.
+config.json
+
+# User-owned project hooks (auto-generated on first run; holds your own macros).
+project_hooks.py
+
+# Owned state directory, if it ever resolves inside the repo.
+.layaider/
+
+# aider session artifacts and the secrets env file.
+.aider*
+aider.env
+.env
+*.env
+
+# Python bytecode / caches.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Editor / OS cruft.
+.DS_Store
+*.swp
+
+# Developer-mode sentinel (never commit; users must not inherit dev mode).
+DEV
+
+# Internal dev/working docs — never published. Anything dropped in internal/
+# (ledgers, planning, reviews, audits, prior-architecture notes) is ignored
+# automatically; see internal/README.md.
+/internal/
+
+# Local dev tooling (WSL preview launch config, local settings).
+/.claude/

@@ -1,0 +1,342 @@
+<!doctype html>
+<!-- DEV-AWARE: contains dev-mode-only elements (#devBadge, #devCard), shown only when mode is "dev". -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Layaider — control</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="bar">
+  <button id="menuBtn" class="icon-btn" aria-label="Open menu" aria-expanded="false"><span class="burger"></span></button>
+  <h1 id="pageTitle" class="title">Status</h1>
+  <span id="devBadge" class="devbadge" hidden title="Developer mode (DEV sentinel present)">DEV</span>
+  <button id="devToggle" class="devtoggle" hidden aria-label="Toggle developer mode"></button>
+  <button id="notifBtn" class="icon-btn notif-btn" aria-label="Notifications" title="Notifications">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+    <span id="notifCount" class="notif-count" hidden>0</span>
+  </button>
+  <div class="pills">
+    <span class="pill" id="pillAider"><span class="dot"></span>aider</span>
+    <span id="serverPills" class="serverpills"></span>
+  </div>
+</header>
+
+<nav id="drawer" class="drawer" aria-hidden="true">
+  <div class="drawer-head">Tools</div>
+  <a class="nav-item" href="#status">Status</a>
+  <a class="nav-item" href="#git">Git</a>
+  <a class="nav-item" href="#sync">Sync</a>
+  <a class="nav-item" href="#aider">aider</a>
+  <a class="nav-item" href="#live">Live</a>
+  <a class="nav-item" href="#chathistory">Chat history</a>
+  <a class="nav-item" href="#files">Files</a>
+  <a class="nav-item" href="#servers">Servers</a>
+  <a class="nav-item" href="#system">System</a>
+</nav>
+<div id="scrim" class="scrim" hidden></div>
+
+<main class="content">
+
+  <div class="repobar-wrap">
+    <button class="repobar" id="repoBtn">repo: <span id="repoName">…</span> <span class="rchev">▾</span></button>
+    <div class="repolist" id="repoList" hidden></div>
+  </div>
+
+  <section class="page" data-page="status">
+    <p class="page-intro">A live snapshot of the host, this repo, and what’s running. It refreshes every couple of seconds. Use the tabs (☰) to act on anything here — <b>Git</b> to commit, <b>Sync</b> to push/pull, <b>Live</b> to drive aider.</p>
+    <div class="stub-banner" id="stubBanner">checking…</div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-h">System</div>
+        <dl class="kv">
+          <dt>uptime</dt><dd id="sysUptime">—</dd>
+          <dt>load</dt><dd id="sysLoad">—</dd>
+          <dt>memory</dt><dd id="sysMem">—</dd>
+          <dt>disk</dt><dd id="sysDisk">—</dd>
+        </dl>
+      </div>
+      <div class="card">
+        <div class="card-h">Repo</div>
+        <dl class="kv">
+          <dt>branch</dt><dd id="gitBranch" class="mono">—</dd>
+          <dt>vs origin <button class="i-btn" data-info="aborigin" aria-label="info" title="what is this?">ⓘ</button></dt><dd id="gitAB" class="mono">—</dd>
+          <dt>changes <button class="i-btn" data-info="changes" aria-label="info" title="what is this?">ⓘ</button></dt><dd id="gitChanges" class="mono">—</dd>
+          <dt>last</dt><dd id="gitLast" class="mono">—</dd>
+        </dl>
+      </div>
+      <div class="card">
+        <div class="card-h">Processes</div>
+        <dl class="kv" id="processList">
+          <dt>aider</dt><dd id="procAider">—</dd>
+        </dl>
+      </div>
+      <div class="card devcard" id="devCard" hidden>
+        <div class="card-h">Developer <span class="devbadge">DEV</span></div>
+        <dl class="kv" id="devKv"></dl>
+        <div class="dev-section">
+          <div class="dev-section-h">API call log <button class="clink" id="devApiClear">clear</button></div>
+          <div class="dev-apilog" id="devApiLog"><div class="gmuted">no API calls yet</div></div>
+        </div>
+        <p class="gmuted devnote">Visible only in dev mode (a <span class="mono">DEV</span> sentinel file in the install root). This card and its data are never sent in user mode.</p>
+      </div>
+    </div>
+    <div class="muted updated">updated <span id="updated">—</span></div>
+  </section>
+
+  <section class="page" data-page="git" hidden>
+    <div class="gittabs" role="tablist" aria-label="Git views">
+      <button class="gtab current" data-gtab="changes" role="tab" aria-selected="true">Changes</button>
+      <button class="gtab" data-gtab="history" role="tab" aria-selected="false">History</button>
+    </div>
+
+    <div class="gpanel" data-gpanel="changes">
+      <p class="page-intro">Review what changed, then commit. Tracked files use a checkbox; <b>untracked</b> files get a 3-way choice — <b>commit</b>, <b>ignore</b> (writes the <code>.gitignore</code> line), or <b>leave</b> — so nothing slips in by accident. Each group header has bulk actions, and the summary below the list shows exactly what the next Commit will do.</p>
+      <div id="gitStub"></div>
+      <div class="files" id="gitFiles"><div class="gmuted">loading…</div></div>
+      <div class="commit-summary" id="commitSummary" role="status" aria-live="polite" hidden></div>
+      <div class="commitbox">
+        <input class="msg" id="commitMsg" placeholder="commit message" data-write>
+        <button class="commit" id="commitBtn" data-write disabled>Commit</button>
+      </div>
+      <div class="undowrap">
+        <button class="undo" id="undoBtn" data-write>Undo last commit (soft)</button>
+        <div class="track" id="undoTrack" hidden style="margin-top:8px"><div class="fill"></div><span class="hint">slide to undo →</span><div class="knob" role="button" aria-label="Slide to undo">→</div></div>
+      </div>
+    </div>
+
+    <div class="gpanel" data-gpanel="history" hidden>
+      <p class="page-intro">Browse past commits. <b>Search</b> (🔍) matches commit messages or, in <b>code</b> mode, the changed contents; <b>filter</b> (▽) narrows by type, path, or date. Tap a commit to see its files and diff.</p>
+      <div class="htoolbar">
+        <button class="hicon open" id="searchToggle" aria-label="Search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+        </button>
+        <button class="hicon" id="filterToggle" aria-label="Filter" data-count="">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>
+        </button>
+        <select id="sortSel" class="hsort">
+          <option value="desc">newest</option>
+          <option value="asc">oldest</option>
+        </select>
+      </div>
+      <div class="hpanel" id="searchPanel">
+        <div class="seg">
+          <button class="segbtn current" data-mode="message">message</button>
+          <button class="segbtn" data-mode="code">code</button>
+        </div>
+        <input id="searchInput" class="hinput" placeholder="search messages…" autocapitalize="off" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="hpanel" id="filterPanel" hidden>
+        <div class="chips" id="typeChips">
+          <button class="chip current" data-type="">all</button>
+          <button class="chip" data-type="feat">feat</button>
+          <button class="chip" data-type="fix">fix</button>
+          <button class="chip" data-type="chore">chore</button>
+        </div>
+        <input id="pathInput" class="hinput" placeholder="path filter, e.g. js/physics.js" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <div class="daterow">
+          <input id="sinceInput" class="hinput" type="date">
+          <span class="todash">→</span>
+          <input id="untilInput" class="hinput" type="date">
+        </div>
+      </div>
+      <div id="gitLog"><div class="gmuted">loading…</div></div>
+      <button class="loadmore" id="loadMore" hidden>load more</button>
+    </div>
+  </section>
+  <section class="page" data-page="sync" hidden>
+    <div class="syncstatus card" id="syncStatus"><div class="gmuted">loading…</div></div>  </section>
+  <section class="page" data-page="aider" hidden>
+    <details class="aider-help">
+      <summary>New to aider? Start here</summary>
+      <div class="aider-help-body">
+        Layaider drives <strong>aider</strong> (the AI pair-programmer). You assemble small reusable
+        building blocks, then a <em>blueprint</em> ties them together for a run:
+        <ol>
+          <li><strong>Key</strong> — your model provider's API key (stored on-device at <span class="mono">~/.layaider</span>, mode 0600; never committed).</li>
+          <li><strong>Model</strong> — a model string, e.g. <span class="mono">openrouter/google/gemma-3-27b-it:free</span> or <span class="mono">anthropic/claude-...</span>.</li>
+          <li><strong>Blueprint</strong> — pick a model for the architect role and attach the matching key. Editor/weak roles are optional; start with just the architect.</li>
+          <li><strong>Launch</strong> — open the <strong>Live</strong> tab and start the blueprint; the session runs in the background and survives tab switches.</li>
+        </ol>
+        For a fully offline setup (Ollama and other local servers), see <span class="mono">docs/LOCAL_MODELS.md</span> in the repo.
+        <div class="ah-links">
+          <a href="https://aider.chat" target="_blank" rel="noopener">aider.chat ↗</a>
+          <a href="https://aider.chat/docs/usage.html" target="_blank" rel="noopener">Usage / getting started ↗</a>
+          <a href="https://aider.chat/docs/llms.html" target="_blank" rel="noopener">Connecting models &amp; keys ↗</a>
+          <a href="https://aider.chat/docs/usage/commands.html" target="_blank" rel="noopener">In-chat commands ↗</a>
+        </div>
+      </div>
+    </details>
+    <div id="aiderBody"><div class="gmuted">loading…</div></div>  </section>
+  <section class="page" data-page="live" hidden>
+    <details class="aider-help">
+      <summary>About the Live terminal</summary>
+      <div class="ah-body">
+        Drive a running aider session here. Launch a blueprint to start one (it runs in tmux and survives tab switches); then type messages and send with <strong>Enter</strong>. The <strong>⋯</strong> menu opens the command palette and session controls; <strong>A−/A+</strong> change the font and <strong>⛶</strong> is full-screen (Esc exits). When aider asks a yes/no question, answer buttons appear above the input.
+      </div>
+    </details>
+    <div id="liveBody"><div class="gmuted">loading…</div></div>  </section>
+  <section class="page" data-page="chathistory" hidden>
+    <p class="page-intro">aider’s conversation log for this repo, grouped by session. <b>Search</b> filters the stream; <b>thinking</b> shows the model’s reasoning blocks; <b>inspect</b> reveals raw/unparsed entries and parser diagnostics. Use the type chips and collapse controls to focus.</p>
+    <div class="chtop" id="chTop">
+      <div class="chtop-strip">
+        <span class="chtop-title">controls</span>
+        <button class="clink" id="chRefresh" title="reload">↻</button>
+        <button class="chtop-handle" id="chTopToggle" title="show/hide controls" aria-label="show/hide controls"><span class="chev">▾</span></button>
+      </div>
+      <div class="chtop-layers">
+        <div class="chtop-row">
+          <span class="chtop-rowlabel">search</span>
+          <input type="search" id="chSearch" class="chsearch" placeholder="filter chat…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        </div>
+        <div class="chtop-row">
+          <span class="chtop-rowlabel">review</span>
+          <button class="chtoggle" id="chThinking">thinking</button>
+          <button class="chtoggle" id="chInspect">inspect</button>
+          <span class="chmeta" id="chMeta"></span>
+        </div>
+        <div class="chtop-row">
+          <span class="chtop-rowlabel">collapse</span>
+          <button class="chbtn" id="chExpandAll">expand all</button>
+          <button class="chbtn" id="chCollapseAll">collapse all</button>
+          <span class="chtype-chips" id="chTypeChips"></span>
+        </div>
+      </div>
+    </div>
+    <div id="chatHistory"><div class="gmuted">loading…</div></div>  </section>
+  <section class="page" data-page="files" hidden>
+    <div class="filesbar">
+      <select id="fileMode" class="hsort"><option value="name">name</option><option value="content">content</option></select>
+      <input id="fileFilter" class="hinput" placeholder="filter by name…" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <div class="seg" id="fileView" role="tablist" title="view">
+        <button class="segbtn current" data-view="list" role="tab">list</button>
+        <button class="segbtn" data-view="tree" role="tab">tree</button>
+      </div>
+      <button class="clink" id="fileFilterBtn" title="filter" aria-expanded="false">filter</button>
+      <button class="clink" id="refreshBtn" title="reload">↻</button>
+      <button class="clink" id="newBtn" data-write>+ new</button>
+    </div>
+    <div class="fltpanel" id="fileFilterPanel" hidden>
+      <div class="fltrow"><span class="fltlbl">status</span>
+        <div class="fltchips" data-flt="status">
+          <button class="chip current" data-v="all">all</button>
+          <button class="chip" data-v="modified">modified</button>
+          <button class="chip" data-v="untracked">untracked</button>
+          <button class="chip" data-v="staged">staged</button>
+          <button class="chip" data-v="clean">clean</button>
+        </div>
+      </div>
+      <div class="fltrow"><span class="fltlbl">ignored</span>
+        <div class="fltchips" data-flt="ignored">
+          <button class="chip current" data-v="all">all</button>
+          <button class="chip" data-v="only">only ignored</button>
+          <button class="chip" data-v="hide">hide ignored</button>
+        </div>
+      </div>
+      <div class="fltrow fltchecks">
+        <label class="fltchk"><input type="checkbox" id="fltStub"> stubs only</label>
+        <label class="fltchk"><input type="checkbox" id="fltHidden"> show hidden (dotfiles, node_modules)</label>
+      </div>
+      <div class="fltrow fltfoot"><button class="clink" id="fltReset">reset filters</button></div>
+    </div>
+    <div class="crumb" id="fileCrumb"></div>
+    <div id="fileList"><div class="gmuted">loading…</div></div>  </section>
+  <section class="page" data-page="servers" hidden>
+    <p class="page-intro">Manage internal Termux/Debian servers. <b>Scan</b> finds what’s already running and drops it in <b>Found</b> to triage — <b>manage</b> (full start/stop/restart/config), <b>watch</b> (live status only), or <b>ignore</b> (hidden). Or <b>add</b> one yourself. Nothing is started for you, and this never touches anything outside Termux/Debian.</p>
+    <div class="srvbar">
+      <button class="clink" id="srvDiscover">⟳ scan</button>
+      <button class="clink" id="srvAdd" data-write>+ add server</button>
+      <button class="clink" id="srvSettings" title="server manager settings" aria-label="settings">⚙</button>
+    </div>
+    <div id="srvSettingsPanel" class="srv-settings" hidden></div>
+    <div id="srvAddPanel" class="srv-addpanel" hidden></div>
+    <div id="serversBody"><div class="gmuted">loading…</div></div>
+  </section>
+  <section class="page" data-page="system" hidden>
+    <p class="page-intro">Host vitals and what’s running: CPU/memory/disk, the aider process, your project’s file servers, listening ports, and the process list. Server cards have start/stop/restart and an editor; <b>stop</b>/<b>kill</b> ask for confirmation, <b>restart</b> reloads Layaider.</p>
+    <div class="card" id="sysMetrics"><div class="gmuted">loading…</div></div>
+    <div class="card" id="sysAider"></div>
+    <div class="card" id="sysServers"></div>
+    <div class="card" id="sysPorts"></div>
+    <div class="synch" style="margin-top:4px">Processes <span class="syncn" id="sysProcN"></span></div>
+    <div id="sysProcs"><div class="gmuted">loading…</div></div>  </section>
+
+  <div class="backdrop" id="gitBackdrop" hidden>
+    <div class="sheet">
+      <div class="sheet-h">⚠ Destructive</div>
+      <div class="sheet-op" id="sheetOp">—</div>
+      <div class="sheet-sub" id="sheetSub">—</div>
+      <div class="track" id="sheetTrack"><div class="fill"></div><span class="hint">slide to confirm →</span><div class="knob" role="button" aria-label="Slide to confirm">→</div></div>
+      <button class="cancel" id="sheetCancel">Cancel</button>
+    </div>
+  </div>
+
+  <div class="layer" id="commitLayer" hidden>
+    <div class="layerbar"><button class="backbtn" id="commitBack">← history</button><span class="layertitle" id="commitTitle"></span></div>
+    <div class="layerbody" id="commitBody"></div>
+  </div>
+  <div class="layer" id="fileLayer" hidden>
+    <div class="layerbar"><button class="backbtn" id="fileBack">← back</button><span class="layertitle" id="fileTitle"></span></div>
+    <div class="layerbody" id="fileBody"></div>
+  </div>
+  <div class="restart-ov" id="restartOverlay" hidden>
+    <div class="restart-box">
+      <div class="spinner"></div>
+      <div class="restart-title">restarting Layaider</div>
+      <div class="restart-sub" id="restartSub">queuing restart…</div>
+      <button class="clink restart-manual" id="restartManual" hidden onclick="location.reload()">reload now</button>
+    </div>
+  </div>
+
+  <div class="cmodal" id="connModal" hidden>
+    <div class="cmodal-box">
+      <div class="cmodal-bar"><span class="cmodal-title" id="connModalTitle">Connect a remote</span><button class="cmodal-x" id="connModalX" aria-label="Close">✕</button></div>
+      <div class="cmodal-body" id="connModalBody"></div>
+    </div>
+  </div>
+  <div class="docs-ov" id="docsOverlay" hidden>
+    <div class="docs-box">
+      <div class="docs-bar"><button class="backbtn" id="docsIndexBtn">☰ docs</button><span class="docs-title" id="docsTitle">Docs</span><button class="cmodal-x" id="docsX" aria-label="Close">✕</button></div>
+      <div class="docs-body" id="docsBody"></div>
+    </div>
+  </div>
+
+  <div id="notifToasts" class="notif-toasts"></div>
+  <div id="notifScrim" class="notif-scrim" hidden></div>
+  <aside id="notifPanel" class="notif-panel" hidden aria-label="Notifications">
+    <div class="notif-bar">
+      <span class="notif-title">Notifications</span>
+      <select id="notifFilter" class="notif-filter" aria-label="Filter notifications">
+        <option value="all">active</option>
+        <option value="unread">unread</option>
+        <option value="history">all history</option>
+        <option value="error">errors</option>
+        <option value="warning">warnings</option>
+        <option value="success">success</option>
+        <option value="info">info</option>
+        <option value="system">system</option>
+      </select>
+      <button id="notifPrefsBtn" class="cmodal-x" aria-label="Notification settings" title="Notification settings">⚙</button>
+      <button id="notifClose" class="cmodal-x" aria-label="Close">✕</button>
+    </div>
+    <div class="notif-actions-bar">
+      <button id="notifMarkRead" class="clink">mark all read</button>
+      <button id="notifClearRead" class="clink">clear read</button>
+    </div>
+    <div id="notifPanelList" class="notif-list" data-filter="all"></div>
+    <div id="notifPrefs" class="notif-prefs" hidden>
+      <div class="notif-bar">
+        <span class="notif-title">Notification settings</span>
+        <button id="notifPrefsClose" class="cmodal-x" aria-label="Back to notifications">✕</button>
+      </div>
+      <div id="notifPrefsBody" class="notif-prefs-body"></div>
+    </div>
+  </aside>
+</main>
+
+<script src="ui-kit.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
