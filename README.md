@@ -61,24 +61,4 @@ skip automatically when those tools are absent.
   absolute paths, and symlink escapes are rejected.
 - All process execution uses `subprocess` argument arrays with `shell=False`.
 - API keys are stored in `~/.layaider/aider/keys.list` at mode `0600` and
-  are never written to `config.json` or passed on a command line.
-
-## License
-
-Not yet licensed. **Recommended: Apache-2.0** — permissive, with an explicit
-patent grant and an explicit statement that it grants no trademark rights, which
-protects you as the author while letting users run and modify Layaider freely.
-If you want network-deployed modifications to stay open (this is a server app),
-use **AGPL-3.0** instead — copyleft that closes the "SaaS loophole."
-
-Add it the easy way: on GitHub, *Add file → Create new file → name it `LICENSE`*
-and pick the template; or copy the text from https://choosealicense.com or
-https://opensource.org/licenses.
-
-Note: any OSI-approved open-source license lets others fork and redistribute —
-that is inherent to "open source" and cannot be switched off. What you control
-is your own repository (you are never obliged to accept pull requests or merge
-forks back), and the warranty/liability disclaimer present in every OSI license
-protects both you and your users. If you actually need to forbid redistribution,
-that is "source-available" (e.g. PolyForm Noncommercial, BUSL) — not open source.
-
+  are never written to `config.json` or passed on a command line.
